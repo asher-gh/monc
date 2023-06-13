@@ -7,13 +7,25 @@ import (
 	"testing"
 )
 
-func TestEvalIntegerLiteral(t *testing.T) {
+// =================================== Helpers ====================================
+func testEval(s string) object.Object {
+	l := lexer.New(s)
+	p := parser.New(l)
+	prog := p.ParseProgram()
+
+	return Eval(prog)
+}
+
+// ========================= Self evaluating expressions ==========================
+func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int64
 	}{
 		{"5", 5},
 		{"10", 10},
+		{"-5", -5},
+		{"-10", -10},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
@@ -37,14 +49,6 @@ func testIntegerObject(t *testing.T, obj object.Object, i int64) bool {
 	}
 
 	return true
-}
-
-func testEval(s string) object.Object {
-	l := lexer.New(s)
-	p := parser.New(l)
-	prog := p.ParseProgram()
-
-	return Eval(prog)
 }
 
 func TestEvalBooleanExpression(t *testing.T) {
@@ -75,4 +79,24 @@ func testBooleanObject(t *testing.T, obj object.Object, b bool) bool {
 	}
 
 	return true
+}
+
+// ============================== Prefix Expressions ==============================
+func TestBangOperaotr(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testBooleanObject(t, evaluated, tt.expected)
+	}
 }
