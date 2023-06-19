@@ -16,6 +16,46 @@ func testEval(s string) object.Object {
 	return Eval(prog)
 }
 
+func testNullObject(t *testing.T, obj object.Object) bool {
+	if obj != NULL {
+		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
+		return false
+	}
+	return true
+}
+
+func testIntegerObject(t *testing.T, obj object.Object, i int64) bool {
+
+	res, ok := obj.(*object.Integer)
+	if !ok {
+		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if res.Value != i {
+
+		t.Errorf("object has wrong value. got=%d, want=%d", res.Value, i)
+		return false
+	}
+
+	return true
+}
+
+func testBooleanObject(t *testing.T, obj object.Object, b bool) bool {
+	res, ok := obj.(*object.Boolean)
+
+	if !ok {
+		t.Errorf("object is not Boolean. got=%T (%+v)", obj, obj)
+		return false
+	}
+	if res.Value != b {
+		t.Errorf("object has wrong value. got=%t, want=%t", res.Value, b)
+		return false
+	}
+
+	return true
+}
+
 // ========================= Self evaluating expressions ==========================
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
@@ -46,23 +86,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 }
 
-func testIntegerObject(t *testing.T, obj object.Object, i int64) bool {
-
-	res, ok := obj.(*object.Integer)
-	if !ok {
-		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
-		return false
-	}
-
-	if res.Value != i {
-
-		t.Errorf("object has wrong value. got=%d, want=%d", res.Value, i)
-		return false
-	}
-
-	return true
-}
-
+// ============================= Boolean expressions ==============================
 func TestEvalBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -95,21 +119,6 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
-func testBooleanObject(t *testing.T, obj object.Object, b bool) bool {
-	res, ok := obj.(*object.Boolean)
-
-	if !ok {
-		t.Errorf("object is not Boolean. got=%T (%+v)", obj, obj)
-		return false
-	}
-	if res.Value != b {
-		t.Errorf("object has wrong value. got=%t, want=%t", res.Value, b)
-		return false
-	}
-
-	return true
-}
-
 func TestBangOperaotr(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -129,6 +138,7 @@ func TestBangOperaotr(t *testing.T) {
 	}
 }
 
+// ================================= Conditionals =================================
 func TestConditionalExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -154,10 +164,32 @@ func TestConditionalExpressions(t *testing.T) {
 	}
 }
 
-func testNullObject(t *testing.T, obj object.Object) bool {
-	if obj != NULL {
-		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
-		return false
+// ============================== Return statements ===============================
+func TestReturnStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"return 10;", 10},
+		{"return 10; 9;", 10},
+		{"return 2 * 5; 9;", 10},
+		{"9; return 2 * 5; 9;", 10},
+		{
+			`
+if (10 > 1) {
+  if (10 > 1) {
+    return 10;
+  }
+
+  return 1;
+}
+`,
+			10,
+		},
 	}
-	return true
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
 }
