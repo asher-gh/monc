@@ -44,6 +44,9 @@ const (
 	TRUE     = "TRUE"
 	FALSE    = "FALSE"
 	RETURN   = "RETURN"
+
+	// Datatypes
+	STRING = "STRING"
 )
 
 var keywords = map[string]TokenType{
