@@ -786,3 +786,27 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, ope
 
 	return true
 }
+
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	arr, ok := stmt.Expression.(*ast.ArrayLiteral)
+
+	if !ok {
+		t.Fatalf("exp not ask.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	if ln := len(arr.Elements); ln != 3 {
+		t.Fatalf("len(arr.Elements) not 3. got=%d", ln)
+	}
+
+	testIntegerLiteral(t, arr.Elements[0], 1)
+	testInfixExpression(t, arr.Elements[1], 2, "*", 2)
+	testInfixExpression(t, arr.Elements[2], 3, "+", 3)
+}
