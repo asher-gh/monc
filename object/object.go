@@ -22,6 +22,7 @@ const (
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARARY"
 	HASH_OBJ         = "HASH"
+	QUOTE_OBJ        = "QUOTE"
 )
 
 type Builtin struct {
@@ -182,4 +183,19 @@ func (h *Hash) Inspect() string {
 
 type Hashable interface {
 	HashKey() HashKey
+}
+
+// ------------------------------- MACROS -------------------------------
+
+/* Why a thin wrapper around Node?
+ * Since Eval relies on every value being an object.Object, we have to
+ * wrap an AST node in one too.
+ */
+type Quote struct {
+	Node ast.Node
+}
+
+func (q *Quote) Type() ObjectType { return QUOTE_OBJ }
+func (q *Quote) Inspect() string {
+	return "QUOTE(" + q.Node.String() + ")"
 }
