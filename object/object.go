@@ -179,3 +179,7 @@ func (h *Hash) Inspect() string {
 
 	return out.String()
 }
+
+type Hashable interface {
+	HashKey() HashKey
+}

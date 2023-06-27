@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// =================================== Helpers ====================================
+// ------------------------------ HELPERS -------------------------------
 func testEval(s string) object.Object {
 	l := lexer.New(s)
 	p := parser.New(l)
@@ -56,7 +56,7 @@ func testBooleanObject(t *testing.T, obj object.Object, b bool) bool {
 	return true
 }
 
-// ========================= Self evaluating expressions ==========================
+// ---------------------------- EXPRESSIONS -----------------------------
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -86,7 +86,6 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 }
 
-// ============================= Boolean expressions ==============================
 func TestEvalBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -138,7 +137,7 @@ func TestBangOperaotr(t *testing.T) {
 	}
 }
 
-// ================================= Conditionals =================================
+// ---------------------------- CONDITIONALS ----------------------------
 func TestConditionalExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -164,7 +163,7 @@ func TestConditionalExpressions(t *testing.T) {
 	}
 }
 
-// ============================== Return statements ===============================
+// ----------------------------- STATEMENTS -----------------------------
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -214,7 +213,7 @@ f(10);`,
 	}
 }
 
-// ================================ Error Handling ================================
+// ------------------------------- ERRORS -------------------------------
 func TestErrorHandling(t *testing.T) {
 	tests := []struct {
 		input           string
@@ -264,6 +263,10 @@ func TestErrorHandling(t *testing.T) {
 			`"Hello" - "World"`,
 			"unknown operator: STRING - STRING",
 		},
+		{
+			`{"name": "Monkey"}[fn(x) {x}];`,
+			"unusable as hash key: FUNCTION",
+		},
 	}
 
 	for _, tt := range tests {
@@ -299,7 +302,7 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
-// ================== Test functions are internally represented ===================
+// ----------------------------- FUNCTIONS ------------------------------
 func TestFunctionObject(t *testing.T) {
 	input := "fn(x) {x + 2}"
 
@@ -325,7 +328,6 @@ func TestFunctionObject(t *testing.T) {
 	}
 }
 
-// ======================= Test functions work as intended ========================
 func TestFunctionApplication(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -375,7 +377,7 @@ func TestClosures(t *testing.T) {
 	testIntegerObject(t, testEval(input), 5)
 }
 
-// =================================== STRINGS ====================================
+// ------------------------------ STRINGS -------------------------------
 func TestStringLiteral(t *testing.T) {
 	input := `"Hello World!"`
 
@@ -406,7 +408,7 @@ func TestStringConcatenation(t *testing.T) {
 	}
 }
 
-// =================================== BUILTINS ===================================
+// ------------------------------ BUILTINS ------------------------------
 
 func TestBuiltinfunctions(t *testing.T) {
 	tests := []struct {
@@ -473,7 +475,7 @@ func TestBuiltinfunctions(t *testing.T) {
 	}
 }
 
-// ==================================== ARRAYS ====================================
+// ------------------------------- ARRAYS -------------------------------
 func TestArrayLiterals(t *testing.T) {
 	input := "[1, 2 * 2, 3 + 3]"
 
@@ -516,6 +518,74 @@ func TestArrayIndexExpressions(t *testing.T) {
 			testIntegerObject(t, evaled, int64(integer))
 		} else {
 			testNullObject(t, evaled)
+		}
+	}
+}
+
+// ------------------------------- HASHES -------------------------------
+
+func TestHashLiterals(t *testing.T) {
+	input := `let two = "two";
+   {
+      "one": 10 - 9,
+   two: 1 + 1,
+   "thr" + "ee": 6 / 2,
+   4: 4,
+   true: 5,
+   false: 6
+   }`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	if !ok {
+		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("Hash has wrong num of Pairs. got=%d", len(result.Pairs))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := result.Pairs[expectedKey]
+		if !ok {
+			t.Errorf("no pair for given key in Pairs")
+		}
+
+		testIntegerObject(t, pair.Value, expectedValue)
+	}
+}
+
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`{"foo": 5}["foo"]`, 5},
+		{`{"foo": 5}["bar"]`, nil},
+		{`let key = "foo"; {"foo": 5}[key]`, 5},
+		{`{}["foo"]`, nil},
+		{`{5: 5}[5]`, 5},
+		{`{true: 5}[true]`, 5},
+		{`{false: 5}[false]`, 5},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
 		}
 	}
 }
