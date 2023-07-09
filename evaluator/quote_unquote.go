@@ -2,9 +2,9 @@ package evaluator
 
 import (
 	"fmt"
-	"interpreter_in_go/ast"
-	"interpreter_in_go/object"
-	"interpreter_in_go/token"
+	"monc/ast"
+	"monc/object"
+	"monc/token"
 )
 
 func quote(node ast.Node, env *object.Environment) object.Object {

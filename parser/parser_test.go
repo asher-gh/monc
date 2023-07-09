@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"interpreter_in_go/ast"
-	"interpreter_in_go/lexer"
+	"monc/ast"
+	"monc/lexer"
 	"testing"
 )
 

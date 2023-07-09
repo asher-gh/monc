@@ -1,10 +1,10 @@
 package evaluator
 
 import (
-	"interpreter_in_go/ast"
-	"interpreter_in_go/lexer"
-	"interpreter_in_go/object"
-	"interpreter_in_go/parser"
+	"monc/ast"
+	"monc/lexer"
+	"monc/object"
+	"monc/parser"
 	"testing"
 )
 

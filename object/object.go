@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
-	"interpreter_in_go/ast"
+	"monc/ast"
 	"strings"
 )
 

@@ -1,3 +1,3 @@
-module interpreter_in_go
+module monc
 
 go 1.20

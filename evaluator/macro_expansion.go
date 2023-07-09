@@ -1,8 +1,8 @@
 package evaluator
 
 import (
-	"interpreter_in_go/ast"
-	"interpreter_in_go/object"
+	"monc/ast"
+	"monc/object"
 )
 
 func DefineMacros(prog *ast.Program, env *object.Environment) {

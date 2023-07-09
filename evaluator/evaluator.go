@@ -2,8 +2,8 @@ package evaluator
 
 import (
 	"fmt"
-	"interpreter_in_go/ast"
-	"interpreter_in_go/object"
+	"monc/ast"
+	"monc/object"
 )
 
 var (

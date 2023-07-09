@@ -1,7 +1,7 @@
 package evaluator
 
 import (
-	"interpreter_in_go/object"
+	"monc/object"
 	"testing"
 )
 
