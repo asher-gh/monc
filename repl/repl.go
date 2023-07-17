@@ -3,19 +3,17 @@ package repl
 import (
 	"bufio"
 	"fmt"
-	"monc/evaluator"
-	"monc/lexer"
-	"monc/object"
-	"monc/parser"
 	"io"
+	"monc/compiler"
+	"monc/lexer"
+	"monc/parser"
+	"monc/vm"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()
-	macroEnv := object.NewEnvironment()
 
 	for {
 		fmt.Fprintf(out, PROMPT)
@@ -34,15 +32,32 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluator.DefineMacros(program, macroEnv)
-		expanded := evaluator.ExpandMacros(program, macroEnv)
+		// evaluator.DefineMacros(program, macroEnv)
+		// expanded := evaluator.ExpandMacros(program, macroEnv)
+		//
+		// evaluated := evaluator.Eval(expanded, env)
+		// if evaluated != nil {
+		// 	io.WriteString(out, evaluated.Inspect())
+		// 	io.WriteString(out, "\n")
+		// }
 
-		evaluated := evaluator.Eval(expanded, env)
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
-			io.WriteString(out, "\n")
+		comp := compiler.New()
+		err := comp.Compile(program)
+		if err != nil {
+			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
+			continue
 		}
 
+		machine := vm.New(comp.Bytecode())
+		err = machine.Run()
+		if err != nil {
+			fmt.Fprint(out, "Woops! Execution failed:\n %s\n", err)
+			continue
+		}
+
+		stackTop := machine.StackTop()
+		io.WriteString(out, stackTop.Inspect())
+		io.WriteString(out, "\n")
 	}
 }
 
