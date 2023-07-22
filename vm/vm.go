@@ -74,10 +74,47 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func (vm *VM) executeMinusOperator() error {
+	oprnd := vm.pop()
+
+	if oprnd.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("unsupported type for negation: %s", oprnd.Type())
+	}
+
+	value := oprnd.(*object.Integer).Value
+
+	return vm.push(&object.Integer{Value: -value})
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	/* We consider every object other than False as a truthy value
+	 * and therefore push a False on the stack
+	 */
+
+	switch operand {
+	case False:
+		return vm.push(True)
+	default:
+		return vm.push(False)
+	}
 }
 
 func (vm *VM) executeComparison(op code.Opcode) error {
