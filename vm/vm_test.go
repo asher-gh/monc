@@ -15,6 +15,15 @@ type vmTestCase struct {
 	expected interface{}
 }
 
+func TestBooleanExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", true},
+		{"false", false},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", 1},
@@ -72,7 +81,25 @@ func testExpectedObject(
 		if err != nil {
 			t.Errorf("testIntegerObject failed: %s", err)
 		}
+	case bool:
+		err := testBooleanObject(bool(expected), actual)
+		if err != nil {
+			t.Errorf("testBooleanObject failed: %s", err)
+		}
 	}
+}
+
+func testBooleanObject(expected bool, actual object.Object) error {
+	res, ok := actual.(*object.Boolean)
+	if !ok {
+		return fmt.Errorf("object is not Boolean. got=%T (%+v)", actual, actual)
+	}
+
+	if res.Value != expected {
+		return fmt.Errorf("object has wrong value. got=%t, want=%t", res.Value, expected)
+	}
+
+	return nil
 }
 
 func testIntegerObject(expected int64, actual object.Object) error {

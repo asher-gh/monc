@@ -20,15 +20,19 @@ const (
 	OpSub
 	OpMul
 	OpDiv
+	OpTrue
+	OpFalse
 )
 
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", []int{}}, // addition
-	OpPop:      {"OpPop", []int{}}, // pop the topmost element
-	OpSub:      {"OpSub", []int{}}, // subtraction
-	OpMul:      {"OpMul", []int{}}, // multiplication
-	OpDiv:      {"OpDiv", []int{}}, // division
+	OpAdd:      {"OpAdd", []int{}},   // addition
+	OpPop:      {"OpPop", []int{}},   // pop the topmost element
+	OpSub:      {"OpSub", []int{}},   // subtraction
+	OpMul:      {"OpMul", []int{}},   // multiplication
+	OpDiv:      {"OpDiv", []int{}},   // division
+	OpTrue:     {"OpTrue", []int{}},  // push true to stack
+	OpFalse:    {"OpFalse", []int{}}, // push false to stack
 }
 
 func (ins Instructions) String() string {
