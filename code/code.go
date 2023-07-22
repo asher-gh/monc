@@ -22,17 +22,23 @@ const (
 	OpDiv
 	OpTrue
 	OpFalse
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
 )
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", []int{}},   // addition
-	OpPop:      {"OpPop", []int{}},   // pop the topmost element
-	OpSub:      {"OpSub", []int{}},   // subtraction
-	OpMul:      {"OpMul", []int{}},   // multiplication
-	OpDiv:      {"OpDiv", []int{}},   // division
-	OpTrue:     {"OpTrue", []int{}},  // push true to stack
-	OpFalse:    {"OpFalse", []int{}}, // push false to stack
+	OpConstant:    {"OpConstant", []int{2}},
+	OpAdd:         {"OpAdd", []int{}},   // addition
+	OpPop:         {"OpPop", []int{}},   // pop the topmost element
+	OpSub:         {"OpSub", []int{}},   // subtraction
+	OpMul:         {"OpMul", []int{}},   // multiplication
+	OpDiv:         {"OpDiv", []int{}},   // division
+	OpTrue:        {"OpTrue", []int{}},  // push true to stack
+	OpFalse:       {"OpFalse", []int{}}, // push false to stack
+	OpEqual:       {"OpEqual", []int{}},
+	OpNotEqual:    {"OpNotEqual", []int{}},
+	OpGreaterThan: {"OpGreaterThan", []int{}},
 }
 
 func (ins Instructions) String() string {
