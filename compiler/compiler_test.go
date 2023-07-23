@@ -174,6 +174,27 @@ func TestIntegerArithmetic(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestConditionals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+         if (true) { 10 }; 3333;
+         `,
+			expectedConstants: []interface{}{10, 3333},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpTrue),        // 0000
+				code.Make(code.OpJumpIf, 7),   // 0001
+				code.Make(code.OpConstant, 0), // 0004
+				code.Make(code.OpPop),         // 0007
+				code.Make(code.OpConstant, 1), // 0008
+				code.Make(code.OpPop),         // 0011
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
+}
+
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 

@@ -27,6 +27,8 @@ const (
 	OpGreaterThan
 	OpMinus
 	OpBang
+	OpJumpIf // jump if not truthy
+	OpJump
 )
 
 var definitions = map[Opcode]*Definition{
@@ -43,6 +45,8 @@ var definitions = map[Opcode]*Definition{
 	OpGreaterThan: {"OpGreaterThan", []int{}},
 	OpMinus:       {"OpMinus", []int{}},
 	OpBang:        {"OpBang", []int{}},
+	OpJump:        {"OpJump", []int{2}},
+	OpJumpIf:      {"OpJumpIf", []int{2}},
 }
 
 func (ins Instructions) String() string {
