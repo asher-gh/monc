@@ -133,8 +133,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastPop()
 		}
 
-		afterConsequencePos := len(c.instructions)
-		c.changeOperands(jumptNotTruthyPos, afterConsequencePos)
+		if node.Alternative == nil {
+			afterConsequencePos := len(c.instructions)
+			c.changeOperands(jumptNotTruthyPos, afterConsequencePos)
+		} else {
+			jumpPos := c.emit(code.OpJump, 9999)
+			afterConsequencePos := len(c.instructions)
+			c.changeOperands(jumptNotTruthyPos, afterConsequencePos)
+
+			if err := c.Compile(node.Alternative); err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+
+			afterAlternative := len(c.instructions)
+			c.changeOperands(jumpPos, afterAlternative)
+
+		}
 
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
