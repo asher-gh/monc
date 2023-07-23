@@ -27,8 +27,9 @@ const (
 	OpGreaterThan
 	OpMinus
 	OpBang
-	OpJumpIf // jump if not truthy
+	OpJumpIf
 	OpJump
+	OpNull
 )
 
 var definitions = map[Opcode]*Definition{
@@ -46,7 +47,8 @@ var definitions = map[Opcode]*Definition{
 	OpMinus:       {"OpMinus", []int{}},
 	OpBang:        {"OpBang", []int{}},
 	OpJump:        {"OpJump", []int{2}},
-	OpJumpIf:      {"OpJumpIf", []int{2}},
+	OpJumpIf:      {"OpJumpIf", []int{2}}, // jump over if stack top is not truthy
+	OpNull:        {"OpNull", []int{}},    // put vm.Null on the stack
 }
 
 func (ins Instructions) String() string {
