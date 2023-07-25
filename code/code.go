@@ -30,6 +30,8 @@ const (
 	OpJumpIf
 	OpJump
 	OpNull
+	OpSetGlobal
+	OpGetGlobal
 )
 
 var definitions = map[Opcode]*Definition{
@@ -49,6 +51,8 @@ var definitions = map[Opcode]*Definition{
 	OpJump:        {"OpJump", []int{2}},
 	OpJumpIf:      {"OpJumpIf", []int{2}}, // jump over if stack top is not truthy
 	OpNull:        {"OpNull", []int{}},    // put vm.Null on the stack
+	OpSetGlobal:   {"OpSetGlobal", []int{2}},
+	OpGetGlobal:   {"OpGetGlobal", []int{2}},
 }
 
 func (ins Instructions) String() string {
