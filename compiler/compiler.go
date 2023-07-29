@@ -37,12 +37,17 @@ func New() *Compiler {
 
 func (c *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
+	case *ast.StringLiteral:
+		str := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(str))
+
 	case *ast.Program:
 		for _, s := range node.Statements {
 			if err := c.Compile(s); err != nil {
 				return err
 			}
 		}
+
 	case *ast.ExpressionStatement:
 		if err := c.Compile(node.Expression); err != nil {
 			return err

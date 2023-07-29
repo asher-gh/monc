@@ -212,14 +212,31 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	leftType := left.Type()
 	rightType := right.Type()
 
-	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
-		return vm.executeBinaryIntegerOperation(op, left, right)
-	}
+	switch {
 
-	return fmt.Errorf("unsupported tepes for binary operation: %s %s", leftType, rightType)
+	case leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ:
+		return vm.execBiIntOp(op, left, right)
+
+	case leftType == object.STRING_OBJ && rightType == object.STRING_OBJ:
+		return vm.execBiStrOP(op, left, right)
+
+	default:
+		return fmt.Errorf("unsupported tepes for binary operation: %s %s", leftType, rightType)
+	}
 }
 
-func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.Object) error {
+func (vm *VM) execBiStrOP(op code.Opcode, lObj, rObj object.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unknown string operator: %d", op)
+	}
+
+	lVal := lObj.(*object.String).Value
+	rVal := rObj.(*object.String).Value
+
+	return vm.push(&object.String{Value: lVal + rVal})
+}
+
+func (vm *VM) execBiIntOp(op code.Opcode, left, right object.Object) error {
 	leftVal := left.(*object.Integer).Value
 	rightVal := right.(*object.Integer).Value
 
