@@ -32,6 +32,7 @@ const (
 	OpNull
 	OpSetGlobal
 	OpGetGlobal
+	OpArray
 )
 
 var definitions = map[Opcode]*Definition{
@@ -53,6 +54,7 @@ var definitions = map[Opcode]*Definition{
 	OpNull:        {"OpNull", []int{}},    // put vm.Null on the stack
 	OpSetGlobal:   {"OpSetGlobal", []int{2}},
 	OpGetGlobal:   {"OpGetGlobal", []int{2}},
+	OpArray:       {"OpArray", []int{2}}, // operand is the array length
 }
 
 func (ins Instructions) String() string {
