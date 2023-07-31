@@ -43,13 +43,24 @@ func (vm *VM) Run() error {
 	for ip := 0; ip < len(vm.instructions); ip++ {
 		op := code.Opcode(vm.instructions[ip])
 		switch op {
+		case code.OpHash:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+			hash, err := vm.buildHash(vm.sp-numElements, vm.sp)
+			if err != nil {
+				return err
+			}
+			vm.sp = vm.sp - numElements
+			err = vm.push(hash)
+			if err != nil {
+				return err
+			}
+
 		case code.OpArray:
 			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
 			ip += 2
-
 			array := vm.buildArray(vm.sp-numElements, vm.sp)
 			vm.sp = vm.sp - numElements
-
 			err := vm.push(array)
 			if err != nil {
 				return err
@@ -62,16 +73,15 @@ func (vm *VM) Run() error {
 		case code.OpGetGlobal:
 			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
 			ip += 2
-
 			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
 				return err
 			}
+
 		case code.OpConstant:
 			// ReadUint16 is faster than ReadOperands
 			constIndex := code.ReadUint16(vm.instructions[ip+1:])
 			ip += 2
-
 			err := vm.push(vm.constants[constIndex])
 			if err != nil {
 				return err
@@ -82,6 +92,7 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			err := vm.executeComparison(op)
 			if err != nil {
@@ -102,16 +113,19 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpBang:
 			err := vm.executeBangOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpJump:
 			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
 			ip = pos - 1
@@ -119,7 +133,6 @@ func (vm *VM) Run() error {
 		case code.OpJumpIf:
 			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
 			ip += 2
-
 			condition := vm.pop()
 			if !isTruthy(condition) {
 				ip = pos - 1
@@ -135,11 +148,28 @@ func (vm *VM) Run() error {
 	return nil
 }
 
-func (vm *VM) buildArray(startIndex, endIndex int) object.Object {
-	elements := make([]object.Object, endIndex-startIndex)
+func (vm *VM) buildHash(head, tail int) (object.Object, error) {
+	hashedPairs := make(map[object.HashKey]object.HashPair)
 
-	for i := startIndex; i < endIndex; i++ {
-		elements[i-startIndex] = vm.stack[i]
+	for i := head; i < tail; i += 2 {
+		key := vm.stack[i]
+		value := vm.stack[i+1]
+		pair := object.HashPair{Key: key, Value: value}
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return nil, fmt.Errorf("unusable as hash key: %s", key.Type())
+		}
+		hashedPairs[hashKey.HashKey()] = pair
+	}
+
+	return &object.Hash{Pairs: hashedPairs}, nil
+}
+
+func (vm *VM) buildArray(head, tail int) object.Object {
+	elements := make([]object.Object, tail-head)
+
+	for i := head; i < tail; i++ {
+		elements[i-head] = vm.stack[i]
 	}
 
 	return &object.Array{Elements: elements}
