@@ -34,6 +34,7 @@ const (
 	OpGetGlobal
 	OpArray
 	OpHash
+	OpIndex
 )
 
 var definitions = map[Opcode]*Definition{
@@ -57,6 +58,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetGlobal:   {"OpGetGlobal", []int{2}},
 	OpArray:       {"OpArray", []int{2}}, // operand is the array length
 	OpHash:        {"OpHash", []int{2}},  // operand specifies the number of keys and values
+	OpIndex:       {"OpIndex", []int{}},
 }
 
 func (ins Instructions) String() string {
