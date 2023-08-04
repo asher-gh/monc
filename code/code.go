@@ -35,6 +35,9 @@ const (
 	OpArray
 	OpHash
 	OpIndex
+	OpCall
+	OpReturnValue
+	OpReturn
 )
 
 var definitions = map[Opcode]*Definition{
@@ -59,6 +62,9 @@ var definitions = map[Opcode]*Definition{
 	OpArray:       {"OpArray", []int{2}}, // operand is the array length
 	OpHash:        {"OpHash", []int{2}},  // operand specifies the number of keys and values
 	OpIndex:       {"OpIndex", []int{}},
+	OpCall:        {"OpCall", []int{}},
+	OpReturnValue: {"OpReturnValue", []int{}},
+	OpReturn:      {"OpReturn", []int{}},
 }
 
 func (ins Instructions) String() string {
