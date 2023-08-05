@@ -51,6 +51,13 @@ func (c *Compiler) currentInstructions() code.Instructions {
 
 func (c *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
+	case *ast.CallExpression:
+		err := c.Compile(node.Function)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpCall)
+
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
 		if err != nil {
