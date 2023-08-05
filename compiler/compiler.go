@@ -83,7 +83,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		instructions := c.leaveScope()
 
-		compiledFn := &object.CompiledFunction{Instructions: instructions}
+		compiledFn := &object.CompiledFn{Instructions: instructions}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
 	case *ast.IndexExpression:

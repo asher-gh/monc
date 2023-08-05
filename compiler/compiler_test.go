@@ -599,7 +599,7 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
 	for i, constant := range expected {
 		switch constant := constant.(type) {
 		case []code.Instructions:
-			fn, ok := actual[i].(*object.CompiledFunction)
+			fn, ok := actual[i].(*object.CompiledFn)
 			if !ok {
 				return fmt.Errorf("constant %d - not a function: %T", i, actual)
 			}
