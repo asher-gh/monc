@@ -43,7 +43,7 @@ func (vm *VM) popFrame() *Frame {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFn{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
 
@@ -80,9 +80,20 @@ func (vm *VM) Run() error {
 		op = code.Opcode(ins[ip])
 
 		switch op {
+		case code.OpSetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip++
+			vm.stack[vm.currentFrame().bp+int(localIndex)] = vm.pop()
+		case code.OpGetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip++
+			err := vm.push(vm.stack[vm.currentFrame().bp+int(localIndex)])
+			if err != nil {
+				return err
+			}
+
 		case code.OpReturn:
-			vm.popFrame()
-			vm.pop()
+			vm.sp = vm.popFrame().bp - 1
 			err := vm.push(Null)
 			if err != nil {
 				return err
@@ -90,8 +101,7 @@ func (vm *VM) Run() error {
 
 		case code.OpReturnValue:
 			returnVal := vm.pop()
-			vm.popFrame()
-			vm.pop()
+			vm.sp = vm.popFrame().bp - 1
 
 			err := vm.push(returnVal)
 			if err != nil {
@@ -103,8 +113,9 @@ func (vm *VM) Run() error {
 			if !ok {
 				return fmt.Errorf("calling non-function")
 			}
-			frame := NewFrame(fn)
+			frame := NewFrame(fn, vm.sp)
 			vm.pushFrame(frame)
+			vm.sp = frame.bp + fn.NumLocals
 
 		case code.OpIndex:
 			index := vm.pop()
@@ -384,7 +395,7 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 		return vm.execBiStrOP(op, left, right)
 
 	default:
-		return fmt.Errorf("unsupported tepes for binary operation: %s %s", leftType, rightType)
+		return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
 	}
 }
 

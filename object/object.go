@@ -30,6 +30,7 @@ const (
 
 type CompiledFn struct {
 	Instructions code.Instructions
+	NumLocals    int
 }
 
 func (cf *CompiledFn) Type() ObjectType { return COMPILED_FUNCTION_OBJ }

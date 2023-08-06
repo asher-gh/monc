@@ -237,12 +237,75 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 
 func TestFirstClassFunctions(t *testing.T) {
 	tests := []vmTestCase{
-		{input: `
+		{
+			input: `
          let child = fn() {20;};
          let  parent = fn() {child;};
          parent()();
          `,
 			expected: 20,
+		},
+		{
+			input: `
+         let returnsOneReturner = fn() {
+            let returnsOne = fn() { 1; };
+            returnsOne;
+         };
+         returnsOneReturner()();
+         `,
+			expected: 1,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+         let one = fn() { let one = 1; one };
+         one();
+         `,
+			expected: 1,
+		},
+		{
+			input: `
+         let oneTwo = fn() { let one = 1; let two = 2; one + two; };
+         oneTwo();
+         `,
+			expected: 3,
+		},
+		{
+			input: `
+         let oneTwo = fn() { let one = 1; let two = 2; one + two; };
+         let threeFour = fn() { let three = 3; let four = 4; three + four; };
+         oneTwo() + threeFour();
+         `,
+			expected: 10,
+		},
+		{
+			input: `
+         let firstFoobar =  fn() { let foobar = 50; foobar; };
+         let secondFoobar = fn() { let foobar = 100; foobar; };
+         firstFoobar() + secondFoobar();
+         `,
+			expected: 150,
+		},
+		{
+			input: `
+         let globalSeed = 50;
+         let minusOne = fn() {
+            let num = 1;
+            globalSeed - num;
+         }
+         let minusTwo = fn() {
+            let num = 2;
+            globalSeed - num;
+         }
+         minusOne() + minusTwo();
+         `,
+			expected: 97,
 		},
 	}
 
