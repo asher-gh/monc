@@ -97,8 +97,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 		instructions := c.leaveScope()
 
 		compiledFn := &object.CompiledFn{
-			Instructions: instructions,
-			NumLocals:    numLocals,
+			Instructions:  instructions,
+			NumLocals:     numLocals,
+			NumParameters: len(node.Parameters),
 		}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 

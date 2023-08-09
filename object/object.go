@@ -29,8 +29,9 @@ const (
 )
 
 type CompiledFn struct {
-	Instructions code.Instructions
-	NumLocals    int
+	Instructions  code.Instructions
+	NumLocals     int
+	NumParameters int
 }
 
 func (cf *CompiledFn) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
