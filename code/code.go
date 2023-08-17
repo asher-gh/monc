@@ -40,6 +40,7 @@ const (
 	OpReturn
 	OpSetLocal
 	OpGetLocal
+	OpGetBuiltin
 )
 
 var definitions = map[Opcode]*Definition{
@@ -69,6 +70,7 @@ var definitions = map[Opcode]*Definition{
 	OpReturn:      {"OpReturn", []int{}},
 	OpSetLocal:    {"OpSetLocal", []int{1}},
 	OpGetLocal:    {"OpGetLocal", []int{1}},
+	OpGetBuiltin:  {"OpGetBuiltin", []int{1}},
 }
 
 func (ins Instructions) String() string {
