@@ -80,6 +80,14 @@ func (vm *VM) Run() error {
 		op = code.Opcode(ins[ip])
 
 		switch op {
+		case code.OpGetBuiltin:
+			builtinFnIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			definition := object.Builtins[builtinFnIndex]
+			if err := vm.push(definition.Builtin); err != nil {
+				return err
+			}
+
 		case code.OpSetLocal:
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip++
@@ -112,7 +120,7 @@ func (vm *VM) Run() error {
 			numArgs := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
 
-			err := vm.callFunction(int(numArgs))
+			err := vm.executeCall(int(numArgs))
 			if err != nil {
 				return err
 			}
@@ -231,12 +239,7 @@ func (vm *VM) Run() error {
 	return nil
 }
 
-func (vm *VM) callFunction(numArgs int) error {
-	fn, ok := vm.stack[vm.sp-1-int(numArgs)].(*object.CompiledFn)
-	if !ok {
-		return fmt.Errorf("calling non-function")
-	}
-
+func (vm *VM) callFunction(fn *object.CompiledFn, numArgs int) error {
 	if numArgs != fn.NumParameters {
 		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
 	}
@@ -476,4 +479,30 @@ func NewWithGlobalStore(bytecode *compiler.Bytecode, s []object.Object) *VM {
 	vm := New(bytecode)
 	vm.globals = s
 	return vm
+}
+
+func (vm *VM) executeCall(argCount int) error {
+	callee := vm.stack[vm.sp-1-argCount]
+	switch callee := callee.(type) {
+	case *object.CompiledFn:
+		return vm.callFunction(callee, argCount)
+	case *object.Builtin:
+		return vm.callBuiltin(callee, argCount)
+	default:
+		return fmt.Errorf("calling non-function")
+	}
+}
+
+func (vm *VM) callBuiltin(builtinFn *object.Builtin, argCount int) error {
+	args := vm.stack[vm.sp-argCount : vm.sp]
+	result := builtinFn.Fn(args...)
+	vm.sp = vm.sp - argCount - 1
+
+	if result != nil {
+		vm.push(result)
+	} else {
+		vm.push(Null)
+	}
+
+	return nil
 }
