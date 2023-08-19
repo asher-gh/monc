@@ -43,7 +43,8 @@ func (vm *VM) popFrame() *Frame {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFn{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &object.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
 
@@ -80,6 +81,16 @@ func (vm *VM) Run() error {
 		op = code.Opcode(ins[ip])
 
 		switch op {
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			_ = code.ReadUint8(ins[ip+3:])
+			vm.currentFrame().ip += 3
+
+			err := vm.pushClosure(int(constIndex))
+			if err != nil {
+				return err
+			}
+
 		case code.OpGetBuiltin:
 			builtinFnIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
@@ -239,14 +250,14 @@ func (vm *VM) Run() error {
 	return nil
 }
 
-func (vm *VM) callFunction(fn *object.CompiledFn, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+func (vm *VM) callClosure(cl *object.Closure, numArgs int) error {
+	if numArgs != cl.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", cl.Fn.NumParameters, numArgs)
 	}
 
-	frame := NewFrame(fn, vm.sp-numArgs)
+	frame := NewFrame(cl, vm.sp-numArgs)
 	vm.pushFrame(frame)
-	vm.sp = frame.bp + fn.NumLocals
+	vm.sp = frame.bp + cl.Fn.NumLocals
 
 	return nil
 }
@@ -484,8 +495,8 @@ func NewWithGlobalStore(bytecode *compiler.Bytecode, s []object.Object) *VM {
 func (vm *VM) executeCall(argCount int) error {
 	callee := vm.stack[vm.sp-1-argCount]
 	switch callee := callee.(type) {
-	case *object.CompiledFn:
-		return vm.callFunction(callee, argCount)
+	case *object.Closure:
+		return vm.callClosure(callee, argCount)
 	case *object.Builtin:
 		return vm.callBuiltin(callee, argCount)
 	default:
@@ -505,4 +516,14 @@ func (vm *VM) callBuiltin(builtinFn *object.Builtin, argCount int) error {
 	}
 
 	return nil
+}
+
+func (vm *VM) pushClosure(constIndex int) error {
+	constant := vm.constants[constIndex]
+	function, ok := constant.(*object.CompiledFn)
+	if !ok {
+		return fmt.Errorf("not a function: %+v", constant)
+	}
+	closure := &object.Closure{Fn: function}
+	return vm.push(closure)
 }

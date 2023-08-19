@@ -41,6 +41,7 @@ const (
 	OpSetLocal
 	OpGetLocal
 	OpGetBuiltin
+	OpClosure
 )
 
 var definitions = map[Opcode]*Definition{
@@ -71,6 +72,14 @@ var definitions = map[Opcode]*Definition{
 	OpSetLocal:    {"OpSetLocal", []int{1}},
 	OpGetLocal:    {"OpGetLocal", []int{1}},
 	OpGetBuiltin:  {"OpGetBuiltin", []int{1}},
+	/*
+	   OpClosure has two operands
+	   - 2 bytes wide constant index: specifies where in the constant pool
+	     we can find the *object.CompiledFn
+	   - 1 byte wide count: specifies how many free variables sit on the
+	     stack
+	*/
+	OpClosure: {"OpClosure", []int{2, 1}},
 }
 
 func (ins Instructions) String() string {
@@ -106,6 +115,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 		return def.Name
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
+	case 2:
+		return fmt.Sprintf("%s %d %d", def.Name, operands[0], operands[1])
 	}
 
 	return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)

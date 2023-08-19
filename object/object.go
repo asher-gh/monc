@@ -26,7 +26,18 @@ const (
 	QUOTE_OBJ             = "QUOTE"
 	MACRO_OBJ             = "MACRO"
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION_OBJ"
+	CLOSURE_OBJ           = "CLOSURE"
 )
+
+type Closure struct {
+	Fn   *CompiledFn // pointer to the function it wraps
+	Free []Object    // free variables it wraps around
+}
+
+func (c *Closure) Type() ObjectType { return CLOSURE_OBJ }
+func (c *Closure) Inspect() string {
+	return fmt.Sprintf("Closure[%p]", c)
+}
 
 type CompiledFn struct {
 	Instructions  code.Instructions
