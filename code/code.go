@@ -42,6 +42,7 @@ const (
 	OpGetLocal
 	OpGetBuiltin
 	OpClosure
+	OpGetFree
 )
 
 var definitions = map[Opcode]*Definition{
@@ -80,6 +81,8 @@ var definitions = map[Opcode]*Definition{
 	     stack
 	*/
 	OpClosure: {"OpClosure", []int{2, 1}},
+	// retrieve the values in object.Closure Free field and push it on the stack
+	OpGetFree: {"OpGetFree", []int{1}},
 }
 
 func (ins Instructions) String() string {
