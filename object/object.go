@@ -30,8 +30,8 @@ const (
 )
 
 type Closure struct {
-	Fn   *CompiledFn // pointer to the function it wraps
-	Free []Object    // free variables it wraps around
+	Fn   *CompiledFn // pointer to the enclosing function
+	Free []Object    // free variables closure wraps around
 }
 
 func (c *Closure) Type() ObjectType { return CLOSURE_OBJ }
