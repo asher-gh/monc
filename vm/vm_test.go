@@ -524,6 +524,58 @@ func TestClosures(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestRecursiveFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+         let countDown = fn(x) {
+            if (x == 0) {
+               return 0;
+            } else {
+               countDown(x - 1);
+            }
+         };
+         countDown(1);
+         `,
+			expected: 0,
+		},
+		{
+			input: `
+         let countDown = fn(x) {
+            if (x == 0) {
+               return 0;
+            } else {
+               countDown(x - 1);
+            }
+         };
+         let wrapper = fn() {
+            countDown(1);
+         }
+         wrapper();
+         `,
+			expected: 0,
+		},
+		{
+			input: `
+		       let wrapper = fn() {
+		          let countDown = fn(x) {
+		             if (x == 0) {
+		                return 0;
+		             } else {
+		                countDown(x - 1);
+		             }
+		          };
+		          countDown(1);
+		       };
+		       wrapper();
+		       `,
+			expected: 0,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 // ------------------------------ HELPERS -------------------------------
 
 func runVmTests(t *testing.T, tests []vmTestCase) {
@@ -536,6 +588,8 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 		if err != nil {
 			t.Fatalf("compiler error: %s", err)
 		}
+
+		// dumpBytecode(comp)
 
 		vm := New(comp.Bytecode())
 		err = vm.Run()
@@ -675,4 +729,20 @@ func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
 	return p.ParseProgram()
+}
+
+// crude bytecode dumper
+func dumpBytecode(comp *compiler.Compiler) {
+	for i, constant := range comp.Bytecode().Constants {
+		fmt.Printf("CONSTANT %d %p (%T):\n", i, constant, constant)
+
+		switch constant := constant.(type) {
+		case *object.CompiledFn:
+			fmt.Printf(" Instructions: \n%s", constant.Instructions)
+		case *object.Integer:
+			fmt.Printf(" Value: %d\n", constant.Value)
+		}
+
+		fmt.Printf("\n")
+	}
 }

@@ -83,6 +83,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.FunctionLiteral:
 		c.enterScope()
 
+		if name := node.Name; name != "" {
+			c.symbolTable.DefineFunctionName(name)
+		}
+
 		for _, p := range node.Parameters {
 			c.symbolTable.Define(p.Value)
 		}
@@ -301,11 +305,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 	case *ast.LetStatement:
+		// defining before function body allows recursive calls in the body
+		symbol := c.symbolTable.Define(node.Name.Value)
+
 		err := c.Compile(node.Value)
 		if err != nil {
 			return err
 		}
-		symbol := c.symbolTable.Define(node.Name.Value)
 		if symbol.Scope == GlobalScope {
 			c.emit(code.OpSetGlobal, symbol.Index)
 		} else {
@@ -446,5 +452,7 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 		c.emit(code.OpGetBuiltin, symbol.Index)
 	case FreeScope:
 		c.emit(code.OpGetFree, symbol.Index)
+	case FunctionScope:
+		c.emit(code.OpCurrentClosure)
 	}
 }

@@ -716,7 +716,34 @@ func TestStringLiteralExpression(t *testing.T) {
 
 }
 
-// =============================== helper functions ===============================
+func TestFunctionLiteralWithName(t *testing.T) {
+	input := "let doNothing = fn() {  };"
+
+	l := lexer.New(input)
+	p := New(l)
+	prog := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if ln := len(prog.Statements); ln != 1 {
+		t.Fatalf("prog.Body does not containt %d statements. got=%d\n", 1, ln)
+	}
+
+	stmt, ok := prog.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("prog.Statements[0] is not ast.LetStatement. got=%T", prog.Statements[0])
+	}
+
+	function, ok := stmt.Value.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Value is not ast.FunctionLiteral. got=%T", stmt.Value)
+	}
+
+	if fName := function.Name; fName != "doNothing" {
+		t.Fatalf("function literal name wrong. want 'myFunction', got=%q\n", fName)
+	}
+}
+
+// ------------------------------ helpers -------------------------------
 
 func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 	ident, ok := exp.(*ast.Identifier)

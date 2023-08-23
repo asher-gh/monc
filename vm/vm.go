@@ -81,6 +81,14 @@ func (vm *VM) Run() error {
 		op = code.Opcode(ins[ip])
 
 		switch op {
+		case code.OpCurrentClosure:
+			currentClosure := vm.currentFrame().cl
+			err := vm.push(currentClosure)
+
+			if err != nil {
+				return err
+			}
+
 		case code.OpGetFree:
 			freeIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
@@ -113,6 +121,7 @@ func (vm *VM) Run() error {
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip++
 			vm.stack[vm.currentFrame().bp+int(localIndex)] = vm.pop()
+
 		case code.OpGetLocal:
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip++
@@ -510,7 +519,7 @@ func (vm *VM) executeCall(argCount int) error {
 	case *object.Builtin:
 		return vm.callBuiltin(callee, argCount)
 	default:
-		return fmt.Errorf("calling non-function")
+		return fmt.Errorf("calling non-closure and non-builtin")
 	}
 }
 
